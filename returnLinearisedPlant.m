@@ -23,5 +23,5 @@ function [A, B] = returnLinearisedPlant(x, u, c)
          0, 0;
          0, 0;
          D^2/(r*(D^2*m + (J + b^2*m)*tan(psi)^2)), (K*(-J - b^2*m)*dx_g*tan(psi))/(T*(D^2*m + (J + b^2*m)*tan(psi)^2)*cos(psi)^2); 
-         0, K/T];         
+         0, K/T];
 end

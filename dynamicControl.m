@@ -16,45 +16,31 @@ K = 1;      % Constant coefficient
 %% state and control config 
 x_G = 0;
 y_G = 0;
-dxVehicle = 0.05;
 phi = pi/6;
+v_xg = 0.05;
 psi = pi/10;
 
 tau_d = 0;
 u_s = 0;
 
 constants = [b, D, T, m, r, J, K];
-initState = [x_G, y_G, dxVehicle, phi, psi];
+initState = [x_G, y_G, phi, v_xg, psi];
 initControl = [tau_d, u_s];
 
 % Initial state
 x0 = initState;
 u0 = initControl;
 
-%% state space config
-
-% initial A, B matrices are placeholders, they change based on state
-A = eye(5);
-B = zeros(5, 2);
-
-% observation matrix assuming we have all the variables (y = cx)
-C = eye(5); 
-
-% feed forward matrix 
-Dff = 0;
-
-carModelLSS = ss(A, B, C, Dff);
-
 %% lqr config
-
-% fairly a dummy matrix, could use tune up
-Q = [0.1, 0, 0, 0, 0;
-     0, 0.1, 0, 0, 0;
-     0, 0, 0.1, 0, 0;
-     0, 0, 0, 0.01, 0;
+% fairly a dummy matrix, could use some tune up
+Q = [0.5, 0, 0, 0, 0;           % higher penalty on convergence \
+     0, 0.5, 0, 0, 0;           % of position and \
+     0, 0, 0.5, 0, 0;           % orientation variables.
+     0, 0, 0, 0.01, 0;          % do not want velocity to converge too quickly
      0, 0, 0, 0, 0.1];
 
-R = eye(2);
+R = [1, 0;
+     0, 1];
 
 N = zeros(5, 2);
 
@@ -63,7 +49,7 @@ N = zeros(5, 2);
 t_span = 0:0.1:10; % Time span for simulation
 
 % Function to calculate A and B matrices based on the current state x
-calculateAB = @(x, u) returnLinearisedPlant(x, u, constants);
+% calculateAB = @(x, u) returnLinearisedPlant(x, u, constants);
 
 %% result config
 % Initialize arrays to store results
@@ -83,18 +69,19 @@ x_ref = [0.5, 0.5, 0, pi/2, 0];
 % Simulate the closed-loop system
 for i = 2:5
     % Calculate A and B based on the current state x
-    [A, B] = calculateAB(x(i-1, :), u(i-1, :))
+    [A, B] = returnLinearisedPlant(x(i-1, :), u(i-1, :), constants)
 
     set(carModelLSS, 'A', A);
     set(carModelLSS, 'B', B);
 
-    [K, ~, ~] = lqr(carModelLSS, Q, R, N);
+    [K, ~, ~] = lqr(A, B, Q, R, N);
 
     % Implement the feedback control law: u = -Kx
-    u = -K * (x(i-1, :) - x_ref)';
+    u = K * (x_ref - x(i-1, :))';
 
     % Update state using Euler integration
-    x_dot = (A - B * K) * x(i-1, :)'; %  + B * u;
+    x_dot = (A - B * K) * x(i-1, :)' + B * K * x_ref';
+
     x(i, :) = x(i-1, :) + x_dot' * (t_span(i) - t_span(i-1));
 
     % Update time

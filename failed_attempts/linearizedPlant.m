@@ -11,15 +11,15 @@ K = 1;      % Constant coefficient
 
 x_G = 0;
 y_G = 0;
-dxVehicle = 0.05;
 phi = pi/6;
+v_xg = 0.05;
 psi = pi/10;
 
 tau_d = 0;
 u_s = 0;
 
 constants = [b, D, T, m, r, J, K];
-state = [x_G, y_G, dxVehicle, phi, psi];
+state = [x_G, y_G, phi, v_xg, psi];
 control = [tau_d, u_s];
 
 [A, B] = returnLinearisedPlant(state, control, constants);

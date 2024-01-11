@@ -36,7 +36,7 @@ x0 = initState;
 u0 = initControl;
 
 %% simulaton set up
-tspan = [0:0.1:1];
+tspan = [0:0.1:5];
 
 [t, x, u] = ode45(@(t, x) plantModel(t, x, refState, initControl, constants), tspan, initState);
 % [t, x, u] = ode45(@plantModel, tspan, refState, initState, initControl, constants);

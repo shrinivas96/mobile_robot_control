@@ -97,13 +97,6 @@ for i = 1:length(simulation)
     refHistoryY(i) = x_ref(2);
     movingSineRef = x_ref;
     
-    % circle reference function to track
-    %{
-    x_ref = returnCircleReference(x_curr, (i-1)*h);
-    refHistoryX(i) = x_ref(1);
-    refHistoryY(i) = x_ref(2);
-    %}
-
     % integrate xdot on the time interval [kh, (k+1)h) \
     % using the fixed controller K
     tspan = [(i-1)*h (i)*h];
@@ -159,28 +152,8 @@ legend('Reference path', 'Ref2', 'Path taken')
 % 
 % figure(2)
 % plot()
-    
+
 %% functions
-function refState = returnNewReference()
-    % this funciton would be replaced by the part that returns a new reference from camera images
-    refState = [4, 2, pi/4, 0.05, 0]';               %put the psi to 0 maybe
-end
-
-function refState = returnCircleReference(currentState, time)
-    refState = zeros(size(currentState));
-
-    % generate a circle with centre at (h, k) and radius radius
-    h = 5;
-    k = 5;
-    radius = 4;
-
-    refState(1) = h + radius * cos(time);
-    refState(2) = k + radius * sin(time);
-    refState(3) = pi/4;
-    refState(4) = 0.05;
-    refState(5) = 0;
-end
-
 function refState = returnSineReference(currentState, time)
     x0 = currentState(1);
     refState = zeros(size(currentState));
@@ -228,32 +201,4 @@ function refState = videoReference(currentState, obsDistaceToObj, pixelDistToCen
     refState(4) = 0.05;
     refState(5) = 0;
 
-end
-
-function refState = myFun(prevRef)
-    refState = zeros(size(prevRef));
-    x = prevRef(1);
-    y = prevRef(2);
-    newX = 0;
-    newY = 0;
-
-    if (x < 5) && (x > 2)
-        newX = x + 0.2;
-    end
-    if (x == 5) || (x == 2)
-        newX = x;
-    end
-    if (y < 5) && (y > 2)
-        newY = y + 0.2;
-    end
-    if (y == 5) || (y == 2)
-        newY = y;
-    end
-    refState(1) = newX;
-    refState(2) = newY;
-
-    % random constant orientation, velocity and psi
-    refState(3) = pi/4;
-    refState(4) = 0.05;
-    refState(5) = 0;
 end

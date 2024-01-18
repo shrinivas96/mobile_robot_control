@@ -28,33 +28,35 @@ constants = [b, D, T, m, r, J, K];
 initState = [x_G, y_G, phi, v_xg, psi]';
 initControl = [tau_d, u_s]';
 
-refState = [2, 2, pi/4, 0.05, 0.01]';
+refState = [2, 3, pi/4, 0.05, 0.01]';
 
 % Initial state and control
 x0 = initState;
 u0 = initControl;
 
 %% simulaton set up
-tspan = [0 5];
+tspan = [0:0.01:10];
+tspan = [0:0.01:10];
 
-[to, x_out] = ode45(@(t, x) plantModel(t, x, refState, initControl, constants), tspan, initState);
+
+[t, x] = ode45(@(t, x) plantModel(t, x, refState, initControl, constants), tspan, initState);
 % [t, x, u] = ode45(@plantModel, tspan, refState, initState, initControl, constants);
 % plot(t, x);
 
 %% Plot results
 figure
-plot(to, x_out(:,1))
+plot(t, x(:,1))
 hold on
-plot(to, x_out(:, 2))
-plot(to, x_out(:, 3))
-plot(to, x_out(:, 4))
-plot(to, x_out(:, 5))
+plot(t, x(:, 2))
+plot(t, x(:, 3))
+plot(t, x(:, 4))
+plot(t, x(:, 5))
 hold off
 
 legend('x_G', 'y_G', 'phi', 'v_xg', 'psi')
 
 figure
-plot(x_out(:, 1), x_out(:, 2))
+plot(x(:, 1), x(:, 2))
 
 %% second simulate
 % newInitState = x(end, :);

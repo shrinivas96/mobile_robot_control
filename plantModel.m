@@ -1,5 +1,12 @@
-function xdot = plantModel(t, x_curr, u_curr, constants)
+function xdot = plantModel(t, x_curr, x_ref, feedbackControl, constants)
 	
+	% line 72 thing should happen here 
+
+	% variable that i hand over should be K not u_curr
+	
+	% compute control based on the new state that ode45 passes here while simulating
+	u_curr = feedbackControl * (x_ref - x_curr);
+
 	% unpack controls
 	tau_d = u_curr(1);
 	u_s = u_curr(2);

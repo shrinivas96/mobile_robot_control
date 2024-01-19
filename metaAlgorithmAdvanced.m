@@ -14,6 +14,9 @@ J = 0.03;   % mass moment of intertia TBD
 K = 1;      % Constant coefficient 
 
 %% state and control config 
+% folder to save figures
+folderName = "sine_Q16R2";
+
 % initial state if circle then x y 9 and 5 if sine then 0 and 0
 x_G = 0;
 y_G = 0;
@@ -76,8 +79,6 @@ stateHistory = zeros(length(simulation), length(x_curr));
 controlHistory = zeros(length(simulation), length(u_curr));
 timeHistory = zeros(length(simulation), 1);
 
-refHistoryX = zeros(length(simulation), 1);
-refHistoryY = zeros(length(simulation), 1);
 refHistory = zeros(length(simulation), 2);
 
 % only to have a moving sine reference state
@@ -93,8 +94,6 @@ for i = 1:length(simulation)
     % sine reference function to track
     x_ref = returnSineReference(movingSineRef, h);
     refHistory(i, :) = x_ref(1:2)';
-    refHistoryX(i) = x_ref(1);
-    refHistoryY(i) = x_ref(2);
     movingSineRef = x_ref;
     
     % integrate xdot on the time interval [kh, (k+1)h) \
@@ -111,6 +110,13 @@ for i = 1:length(simulation)
     timeHistory(i) = i;
 end
 
+
+%% compute metrics
+
+positionErrorVector = refHistory - stateHistory(:, 1:2);
+normPosError = vecnorm(positionErrorVector')';
+
+normControl = vecnorm(controlHistory')';
 
 %% plot
 %{
@@ -140,18 +146,66 @@ end
     x_curr = x_ref;
     plot(refHistoryX, refHistoryY)
 %}
-    
-% plot only position states
-figure(1)
-plot(refHistoryX, refHistoryY, 'LineWidth', 2)
-hold on
+
+% set some default plot properties
+set(groot, 'defaultAxesTickLabelInterpreter', 'latex', ...
+    'defaultLegendInterpreter', 'latex', ...
+    'defaultTextInterpreter', 'latex');
+set(groot, 'defaultAxesFontSize', 12)
+
+
+% plot reference and actual position states
+figs(1) = figure('Visible', 'off');
 plot(refHistory(:, 1), refHistory(:, 2), 'LineWidth', 2)
+hold on
 plot(stateHistory(:, 1), stateHistory(:, 2), 'LineWidth', 2)
 hold off
-legend('Reference path', 'Ref2', 'Path taken')
-% 
-% figure(2)
-% plot()
+title('Comparing reference and actual trajectory')
+xlabel('$x$')
+ylabel('$y$')
+legend('Reference path', 'Actual path')
+
+figs(2) = figure('Visible', 'off');
+plot(timeHistory, normPosError, 'LineWidth', 2)
+title('Norm of error between reference and actual trajectory')
+xlabel('Time $t$')
+ylabel('Error $||e||_2$')
+legend('Normed error')
+
+figs(3) = figure('Visible', 'off');
+plot(timeHistory, controlHistory(:, 1), 'LineWidth', 2)
+hold on
+plot(timeHistory, controlHistory(:, 2), 'LineWidth', 2)
+hold off
+title('Control applied at each time step')
+xlabel('Time $t$')
+ylabel('Controls $\tau_d$ and $u_s$')
+legend('Rear wheel torque $\tau_d$', 'Streering control $u_s$')
+
+figs(4) = figure('Visible', 'off');
+plot(timeHistory, normControl, 'LineWidth', 2)
+title('Norm of control applied at each time step')
+xlabel('Time $t$')
+ylabel('Control action $||u||_2$')
+legend('Normed control')
+
+%% save figures 
+% the base folder where all images will lie, and specific folders
+baseFolder = '/home/bhatt/Schreibtisch/Thesis Data/Code_space/Matlab_sim/images/';
+saveFiguresTo = strcat(baseFolder, folderName);
+
+listFigNames = {'trajectory_comparison'; 'error_norm'; 'controls'; 'control_norm'};
+
+if ~exist("saveFiguresTo", "dir")
+    mkdir(saveFiguresTo)
+end
+
+for i = 1:length(figs)
+    figHandle = figs(i);
+    figName = listFigNames{i}; % num2str(get(figHandle, 'Number'));
+    set(0, 'CurrentFigure', figHandle);
+    saveas(figHandle, fullfile(saveFiguresTo, strcat(figName, '.png')));
+end
 
 %% functions
 function refState = returnSineReference(currentState, time)

@@ -1,0 +1,1 @@
+matlab -nodisplay -nodesktop -r "run('~/Schreibtisch/Thesis Data/Code_space/Matlab_sim/metaAlgorithmAdvanced.m'); exit;"
